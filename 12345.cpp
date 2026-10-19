@@ -58,3 +58,59 @@ vector<int> nrzI(string bits) {
     }
     return s;
 }
+
+vector<int> manchester(string bits) {
+    vector<int> s;
+    for (char b : bits) {
+        if (b == '0') { s.push_back(1); s.push_back(-1); }
+        else { s.push_back(-1); s.push_back(1); }
+    }
+    return s;
+}
+
+vector<int> diffManchester(string bits) {
+    vector<int> s;
+    int level = 1;
+    for (char b : bits) {
+        if (b == '0') level = -level;
+        s.push_back(level);
+        level = -level;
+        s.push_back(level);
+    }
+    return s;
+}
+
+vector<int> ami(string bits) {
+    vector<int> s;
+    int level = 1;
+    for (char b : bits) {
+        if (b == '0') s.push_back(0);
+        else { s.push_back(level); level = -level; }
+    }
+    return s;
+}
+
+
+vector<int> b8zs(string bits) {
+    vector<int> s;
+    int last = -1;
+    for (int i = 0; i < (int)bits.size();) {
+        if (i + 8 <= (int)bits.size() && bits.substr(i, 8) == "00000000") {
+            int v = (last == 1) ? 1 : -1;
+            int b = -v;
+            s.push_back(0); s.push_back(0); s.push_back(0);
+            s.push_back(v); s.push_back(b); s.push_back(0);
+            s.push_back(v); s.push_back(b);
+            last = b;
+            i += 8;
+        } else {
+            if (bits[i] == '0') s.push_back(0);
+            else {
+                last = -last;
+                s.push_back(last);
+            }
+            i++;
+        }
+    }
+    return s;
+}
