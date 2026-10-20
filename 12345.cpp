@@ -201,6 +201,7 @@ string decodeB8zs(vector<int> s) {
     return bits;
 }
 
+
 string decodeHdb3(vector<int> s) {
     string bits = "";
     for (int i = 0; i < (int)s.size();) {
@@ -260,3 +261,4 @@ string pcmEncode(vector<double> samples, int bitsPerSample, double low, double h
     }
     return bits;
 }
+
