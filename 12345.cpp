@@ -200,3 +200,63 @@ string decodeB8zs(vector<int> s) {
     }
     return bits;
 }
+
+string decodeHdb3(vector<int> s) {
+    string bits = "";
+    for (int i = 0; i < (int)s.size();) {
+        if (i + 4 <= (int)s.size() && s[i] == 0 && s[i+1] == 0 &&
+            s[i+2] == 0 && s[i+3] != 0) {
+            bits += "0000";
+            i += 4;
+        } else if (i + 4 <= (int)s.size() && s[i] != 0 &&
+                   s[i+1] == 0 && s[i+2] == 0 && s[i+3] == s[i]) {
+            bits += "0000";
+            i += 4;
+        } else {
+            bits += (s[i] == 0 ? '0' : '1');
+            i++;
+        }
+    }
+    return bits;
+}
+
+void printSignal(vector<int> s) {
+    for (int x : s) cout << x << ' ';
+    cout << '\n';
+}
+
+
+void saveGraph(vector<int> s, string title) {
+    ofstream file("encoded_signal.svg");
+    int step = 35, left = 40, middle = 140;
+    int width = left + step * (int)s.size() + 30;
+    file << "<svg xmlns='http://www.w3.org/2000/svg' width='" << width
+         << "' height='290'><rect width='100%' height='100%' fill='white'/>";
+    file << "<text x='20' y='25' font-size='18'>" << title << "</text>";
+    for (int i = 0; i < (int)s.size(); i++) {
+        int x = left + i * step;
+        int y = middle - s[i] * 45;
+        file << "<line x1='" << x << "' y1='" << y << "' x2='" << x+step
+             << "' y2='" << y << "' stroke='blue' stroke-width='3'/>";
+        if (i + 1 < (int)s.size()) {
+            int nextY = middle - s[i+1] * 45;
+            file << "<line x1='" << x+step << "' y1='" << y << "' x2='"
+                 << x+step << "' y2='" << nextY << "' stroke='blue'/>";
+        }
+    }
+    file << "</svg>";
+}
+
+
+string pcmEncode(vector<double> samples, int bitsPerSample, double low, double high) {
+    string bits = "";
+    int maximum = (1 << bitsPerSample) - 1;
+    if (high == low) high = low + 1;
+    for (double sample : samples) {
+        int value = (int)round((sample - low) / (high - low) * maximum);
+        value = max(0, min(maximum, value));
+        for (int b = bitsPerSample - 1; b >= 0; b--)
+            bits += char('0' + ((value >> b) & 1));
+    }
+    return bits;
+}
