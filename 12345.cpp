@@ -262,3 +262,67 @@ string pcmEncode(vector<double> samples, int bitsPerSample, double low, double h
     return bits;
 }
 
+vector<double> pcmDecode(string bits, int bitsPerSample, double low, double high) {
+    vector<double> samples;
+    int maximum = (1 << bitsPerSample) - 1;
+    if (high == low) high = low + 1;
+    for (int i = 0; i + bitsPerSample <= (int)bits.size(); i += bitsPerSample) {
+        int value = 0;
+        for (int j = 0; j < bitsPerSample; j++)
+            value = value * 2 + (bits[i+j] - '0');
+        samples.push_back(low + (double)value / maximum * (high - low));
+    }
+    return samples;
+}
+
+void savePcmGraph(vector<double> samples) {
+    if (samples.empty()) return;
+    ofstream file("pcm_staircase.svg");
+    int left = 45, top = 40, bottom = 250, step = 45;
+    double low = *min_element(samples.begin(), samples.end());
+    double high = *max_element(samples.begin(), samples.end());
+    if (low == high) high = low + 1;
+    int width = left + step * (int)samples.size() + 20;
+    file << "<svg xmlns='http://www.w3.org/2000/svg' width='" << width
+         << "' height='300'><rect width='100%' height='100%' fill='white'/>";
+    file << "<text x='15' y='25' font-size='18'>PCM Decoder Staircase</text>";
+    for (int i = 0; i < (int)samples.size(); i++) {
+        int y = bottom - (int)((samples[i] - low) / (high - low) * (bottom-top));
+        int x = left + i * step;
+        file << "<line x1='" << x << "' y1='" << y << "' x2='" << x+step
+             << "' y2='" << y << "' stroke='blue' stroke-width='3'/>";
+        if (i + 1 < (int)samples.size()) {
+            int ny = bottom - (int)((samples[i+1] - low) / (high-low) * (bottom-top));
+            file << "<line x1='" << x+step << "' y1='" << y << "' x2='"
+                 << x+step << "' y2='" << ny << "' stroke='blue' stroke-width='2'/>";
+        }
+    }
+    file << "</svg>";
+}
+
+int main() {
+    srand((unsigned)time(0));
+    cout << "DIGITAL SIGNAL ENCODER AND DECODER\n";
+    cout << "1. Digital input\n2. Analog input using PCM\nChoose input: ";
+    int input;
+    cin >> input;
+
+    string bits = "";
+    vector<double> decodedSamples;
+    int pcmBits = 4;
+    double low = 0, high = 1;
+
+    if (input == 1) {
+        cout << "1. Random bits\n2. Random bits with 4 zeros\n3. Random bits with 8 zeros\nChoose: ";
+        int type; cin >> type;
+        cout << "Number of bits (8-100): ";
+        int n; cin >> n;
+        if (n < 8 || n > 100) { cout << "Enter 8 to 100 bits.\n"; return 0; }
+        if (type == 1) bits = randomBits(n);
+        else if (type == 2) bits = bitsWithZeros(n, 4);
+        else if (type == 3) bits = bitsWithZeros(n, 8);
+        else { cout << "Invalid choice.\n"; return 0; }
+    } else if (input == 2) {
+        cout << "Number of analog samples (2-20): ";
+        int n; cin >> n;
+    }
