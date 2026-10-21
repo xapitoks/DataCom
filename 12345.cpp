@@ -325,4 +325,95 @@ int main() {
     } else if (input == 2) {
         cout << "Number of analog samples (2-20): ";
         int n; cin >> n;
+ if (n < 2 || n > 20) { cout << "Enter 2 to 20 samples.\n"; return 0; }
+        vector<double> samples;
+        cout << "Enter sample values:\n";
+        for (int i = 0; i < n; i++) {
+            double x; cin >> x;
+            samples.push_back(x);
+        }
+        cout << "Bits per sample (2-8): ";
+        cin >> pcmBits;
+        if (pcmBits < 2 || pcmBits > 8) { cout << "Enter 2 to 8 bits.\n"; return 0; }
+        low = *min_element(samples.begin(), samples.end());
+        high = *max_element(samples.begin(), samples.end());
+        bits = pcmEncode(samples, pcmBits, low, high);
+        decodedSamples = pcmDecode(bits, pcmBits, low, high);
+        savePcmGraph(decodedSamples);
+        cout << "PCM staircase saved to pcm_staircase.svg\n";
+    } else {
+        cout << "Invalid input.\n";
+        return 0;
     }
+
+    cout << "Digital data: " << bits << '\n';
+    cout << "Longest palindrome: " << longestPalindrome(bits) << '\n';
+
+    cout << "Line coding:\n1. NRZ-L\n2. NRZ-I\n3. Manchester\n4. Differential Manchester\n5. AMI / scrambling\nChoose: ";
+    int choice; cin >> choice;
+
+    // Menu choices are connected to functions using arrays.
+    string names[] = {"NRZ-L", "NRZ-I", "Manchester", "Differential Manchester"};
+    vector<int> (*encoders[])(string) = {nrzL, nrzI, manchester, diffManchester};
+
+    vector<int> signal;
+    string name;
+
+    if (choice >= 1 && choice <= 4) {
+        name = names[choice - 1];
+        signal = encoders[choice - 1](bits);
+    } else if (choice == 5) {
+        cout << "1. Plain AMI\n2. B8ZS\n3. HDB3\nChoose: ";
+        int scramble; cin >> scramble;
+        string scrambleNames[] = {"AMI", "B8ZS", "HDB3"};
+        vector<int> (*scramblers[])(string) = {ami, b8zs, hdb3};
+        if (scramble < 1 || scramble > 3) {
+            cout << "Invalid choice.\n";
+            return 0;
+        }
+        name = scrambleNames[scramble - 1];
+        signal = scramblers[scramble - 1](bits);
+    } else {
+        cout << "Invalid choice.\n";
+        return 0;
+    }
+
+    cout << name << " signal levels: ";
+    printSignal(signal);
+    saveGraph(signal, name);
+    cout << "Encoded graph saved as encoded_signal.svg\n";
+
+    cout << "Decode the signal? 1. Yes  2. No: ";
+    int answer; cin >> answer;
+    if (answer == 1) {
+        string decodeNames[] = {"NRZ-L", "NRZ-I", "Manchester",
+                                "Differential Manchester", "AMI", "B8ZS", "HDB3"};
+        string (*decoders[])(vector<int>) = {
+            decodeNrzL, decodeNrzI, decodeManchester, decodeDiffManchester,
+            decodeAmi, decodeB8zs, decodeHdb3
+        };
+
+        string decoded = "";
+        for (int i = 0; i < 7; i++) {
+            if (name == decodeNames[i]) {
+                decoded = decoders[i](signal);
+                break;
+            }
+        }
+        cout << "Decoded data: " << decoded << '\n';
+        cout << (decoded == bits ? "Decoded data matches input.\n" :
+                 "Decoded data differs; check the selected scheme.\n");
+    }
+
+    if (input == 2) {
+        cout << "PCM decoded samples: ";
+        for (double x : decodedSamples) cout << x << ' ';
+        cout << '\n';
+    }
+    cout << "Open the SVG files in a web browser to view the graphs.\n";
+    return 0;
+}
+
+
+
+    
