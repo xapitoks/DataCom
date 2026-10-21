@@ -352,7 +352,6 @@ int main() {
     cout << "Line coding:\n1. NRZ-L\n2. NRZ-I\n3. Manchester\n4. Differential Manchester\n5. AMI / scrambling\nChoose: ";
     int choice; cin >> choice;
 
-    // Menu choices are connected to functions using arrays.
     string names[] = {"NRZ-L", "NRZ-I", "Manchester", "Differential Manchester"};
     vector<int> (*encoders[])(string) = {nrzL, nrzI, manchester, diffManchester};
 
